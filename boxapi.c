@@ -105,14 +105,14 @@ void save_tokens(const char * token_file)
 char * token_expire_time()
 {
         char * res = malloc(13);
-        time_t t = time(NULL)+30*DAY_SECS;
+        time_t t = time(NULL)+60*DAY_SECS;
         snprintf(res, 12, "%lu", t);
         return res;
 }
  
 int get_oauth_tokens()
 {
-	int res = 0;
+	/*int res = 0;
 	char * buf = NULL, * code = NULL;
 	char * exp_time = token_expire_time();
 	jobj * tokens;
@@ -151,11 +151,28 @@ int get_oauth_tokens()
 	if(code)   free(code);
 	if(exp_time) free(exp_time);
 	return res;
+	*/
+	int res  = 0;
+	FILE *fp;
+	char temp[100];
+	char * exp_time = token_expire_time();
+	fp = popen("wget http://alpcisdappa14c.corporate.ge.com/box/getToken.php?env=prod&AkanaClientID=GEDG_Talend_ETL_Client&AkanaClientSecret=SrWCn1riC6eRim9XEG8DOlCHlmlu8Uh4ZZ3nDQBe1fNmLREDckyKSgX6QQY42Kev&sso=212571332  | cut -d \" -f 4","r");
+	if (fp ==NULL){
+		fprintf(stderr,"Failed to locate token");
+		res = 1;
+	} else {
+		fgets(temp, sizeof(temp)-1, fp);
+		auth_token = &temp[0];
+	}
+	if(exp_time) free (exp_time);
+	if (token) free (token);
+	return res;
 }
 
 int refresh_oauth_tokens()
 {
-	int res = 0;
+	get_oauth_tokens();
+/*	int res = 0;
 	char * buf = NULL;
 	jobj * tokens;
 	postdata_t postpar=post_init();
@@ -187,7 +204,7 @@ int refresh_oauth_tokens()
 
 	post_free(postpar);
 	if(buf) free(buf);
-	return res;
+	return res;*/
 }
 
 jobj * get_account_info() {
