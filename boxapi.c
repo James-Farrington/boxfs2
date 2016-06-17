@@ -112,45 +112,31 @@ char * token_expire_time()
  
 int get_oauth_tokens()
 {
-	int res = 0;
-	char * buf = NULL, * code = NULL;
-	char * exp_time = token_expire_time();
-	jobj * tokens;
-	postdata_t postpar=post_init();
-
-	printf("Visit %s to authorize, then paste the code below\n", API_OAUTH_AUTHORIZE);
-	code = app_term_askpass("Code:");
-
-	post_add(postpar, "grant_type", "authorization_code");
-	post_add(postpar, "code", code);
-	post_add(postpar, "client_id", API_KEY_VAL);
-	post_add(postpar, "client_secret", API_SECRET);
-	post_add(postpar, "box_refresh_token_expires_at", token_expire_time());
-	buf = http_post(API_OAUTH_TOKEN, postpar);
-
-	tokens = jobj_parse(buf);
-	if(tokens) {
-		auth_token = jobj_getval(tokens, "access_token");
-		refresh_token = jobj_getval(tokens, "refresh_token");
-		if(auth_token) {
-			if(options.verbose) syslog(LOG_DEBUG, "auth_token=%s - refresh_token=%s\n",
-				auth_token, refresh_token);
-			if(options.token_file) save_tokens(options.token_file);
-		} else {
-			char * err = jobj_getval(tokens, "error_description");
-			fprintf(stderr, "Unable to get access token: %s\n", err ? err : "unknown error");
-			if(err) free(err);
-		}
-		jobj_free(tokens);
+	int res  = 0;
+	FILE *fp;
+	char * token = (char *) malloc(100);
+	char * exp_time = NULL; 
+	fp = popen("curl -s 'http://alpcisdappa14c.corporate.ge.com/box/getToken.php?env=prod&AkanaClientID=GEDG_Talend_ETL_Client&AkanaClientSecret=SrWCn1riC6eRim9XEG8DOlCHlmlu8Uh4ZZ3nDQBe1fNmLREDckyKSgX6QQY42Kev&sso=502234837' | cut -d \"\\\"\" -f 4,12", "r");
+	if (fp ==NULL){
+			fprintf(stderr,"Unable to get access token");
+			res = 1;
 	} else {
-        	fprintf(stderr, "Unable to parse server response:\n%s\n", buf);
+		fgets(token, 99, fp);
+		auth_token = strtok(token,"\"");
+		exp_time = strtok(NULL,"\"");
+		if (strlen(auth_token) != 32){
+			auth_token = NULL;
+			fprintf(stderr,"Unable to get access token");
+			res = 1;
+		} else {
+			if (options.verbose) syslog(LOG_DEBUG, "auth_token=%s",auth_token);
+			if (options.token_file) save_tokens(options.token_file); //the called function uses refresh tokens, which have not been created
+		}
 	}
-
-	post_free(postpar);
-	if(buf)    free(buf);
-	if(code)   free(code);
-	if(exp_time) free(exp_time);
+	if (token) free (token);
+	if(exp_time) free (exp_time)
 	return res;
+
 }
 
 int refresh_oauth_tokens()
