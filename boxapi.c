@@ -123,9 +123,11 @@ int get_oauth_tokens()
 		res = 1;
 	} else {
 		fgets(token, 99, fp);
+		if (options.verbose) syslog(LOG_DEBUG, "token=%s",token);
 		if (! (auth_token = strtok(token,"\""))) auth_token = &token[0];
 		exp_time = strtok(NULL,"\"");
 		if (strlen(auth_token) != 32){
+			if (options.verbose) syslog(LOG_DEBUG, "auth_token=%s",auth_token);
 			auth_token = NULL;
 			if (options.verbose) syslog(LOG_DEBUG,"2Unable to get access token");
 			res = 1;
