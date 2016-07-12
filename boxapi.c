@@ -118,7 +118,7 @@ int get_oauth_tokens()
 	char * exp_time = NULL; 
 	fp = popen("curl -s 'http://alpcisdappa14c.corporate.ge.com/box/getToken.php?env=prod&AkanaClientID=GEDG_Talend_ETL_Client&AkanaClientSecret=SrWCn1riC6eRim9XEG8DOlCHlmlu8Uh4ZZ3nDQBe1fNmLREDckyKSgX6QQY42Kev&sso=502234837' | cut -d \"\\\"\" -f 4,12", "r");
 	if (fp ==NULL){
-		if (options.verbose) syslog(LOG_DEBUG,"Unable to get access token");
+		if (options.verbose) syslog(LOG_DEBUG,"1Unable to get access token");
 		res = 1;
 	} else {
 		fgets(token, 99, fp);
@@ -126,7 +126,7 @@ int get_oauth_tokens()
 		exp_time = strtok(NULL,"\"");
 		if (strlen(auth_token) != 32){
 			auth_token = NULL;
-			if (options.verbose) syslog(LOG_DEBUG,"Unable to get access token");
+			if (options.verbose) syslog(LOG_DEBUG,"2Unable to get access token");
 			res = 1;
 		} else {
 			if (options.verbose) syslog(LOG_DEBUG, "auth_token=%s",auth_token);
@@ -134,7 +134,6 @@ int get_oauth_tokens()
 		}
 	}
 	if (fp) pclose(fp);
-	if (token) free (token);
 	return res;
 
 }
